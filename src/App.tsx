@@ -1,14 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import { products } from "./data/products";
 import { ProductCard } from "./components/ProductCard";
 import { Cart } from "./components/Cart";
 import type { Product, CartItem, CouponState } from "./types";
+import { saveToStorage, loadFromStorage } from "./utils/storage";
 
 function App() {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  // Initialize states with loading from storage
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    const savedCart = loadFromStorage();
+    return savedCart?.items || [];
+  });
+
+  const [couponState, setCouponState] = useState<CouponState | null>(() => {
+    const savedCart = loadFromStorage();
+    return savedCart?.coupon || null;
+  });
+
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [couponState, setCouponState] = useState<CouponState | null>(null);
+
+  // Save cart data whenever it changes
+  useEffect(() => {
+    saveToStorage(cartItems, couponState);
+  }, [cartItems, couponState]);
 
   const handleAddToCart = (product: Product) => {
     setCartItems((prevItems) => {
@@ -52,6 +67,9 @@ function App() {
     setCouponState(newCouponState);
   };
 
+  // Calculate total items in cart
+  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
     <div className="min-h-screen bg-gradient-to-r from-blue-500 to-purple-600 py-8 px-4">
       <div className="max-w-7xl mx-auto">
@@ -62,9 +80,9 @@ function App() {
             className="bg-white px-4 py-2 rounded-lg text-blue-600 font-semibold hover:bg-opacity-90 transition-opacity flex items-center space-x-2"
           >
             <span>Cart</span>
-            {cartItems.length > 0 && (
+            {totalItems > 0 && (
               <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
-                {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+                {totalItems}
               </span>
             )}
           </button>

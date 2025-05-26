@@ -5,3 +5,15 @@ export interface Product {
   image: string;
   description: string;
 }
+
+export interface CartItem {
+  product: Product;
+  quantity: number;
+}
+
+export interface CouponState {
+  code: string;
+  isValid: boolean;
+  isApplied: boolean;
+  message: string;
+}
